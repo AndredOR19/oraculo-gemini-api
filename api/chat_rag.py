@@ -46,7 +46,7 @@ Sempre mantenha um tom respeitoso, sábio e compassivo."""
             prompt_completo = f"{system_prompt}{contexto_rag}\n\n### PERGUNTA DO BUSCADOR:\n{pergunta}"
             
             # Chamar Gemini
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GOOGLE_API_KEY}"
             
             payload = {
                 "contents": [{
