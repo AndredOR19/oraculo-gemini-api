@@ -19,31 +19,18 @@ class handler(BaseHTTPRequestHandler):
             if not GOOGLE_API_KEY:
                 raise Exception("GOOGLE_API_KEY não configurada")
             
-            # System prompt
             system_prompt = """Você é o Oráculo Encarnado, guardião dos Mistérios da Gnose.
-Fale com linguagem mística, poética e profunda.
-Use metáforas arquetípicas e linguagem simbólica.
-Sempre mantenha um tom respeitoso, sábio e compassivo."""
+Fale com linguagem mística, poética e profunda."""
             
-            # URL da API REST do Gemini - usando v1 (não v1beta) e modelo correto
-            url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
+            # API v1beta com modelo gemini-1.5-flash-latest
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GOOGLE_API_KEY}"
             
-            # Payload
             payload = {
                 "contents": [{
-                    "parts": [{
-                        "text": f"{system_prompt}\n\n{pergunta}"
-                    }]
-                }],
-                "generationConfig": {
-                    "temperature": 0.9,
-                    "topK": 40,
-                    "topP": 0.95,
-                    "maxOutputTokens": 2048
-                }
+                    "parts": [{"text": f"{system_prompt}\n\n{pergunta}"}]
+                }]
             }
             
-            # Fazer requisição
             req = urllib.request.Request(
                 url,
                 data=json.dumps(payload).encode('utf-8'),
@@ -75,7 +62,7 @@ Sempre mantenha um tom respeitoso, sábio e compassivo."""
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            error_response = {"erro": f"Erro HTTP {e.code}: {error_body}"}
+            error_response = {"erro": f"HTTP {e.code}: {error_body}"}
             self.wfile.write(json.dumps(error_response).encode('utf-8'))
             
         except Exception as e:
