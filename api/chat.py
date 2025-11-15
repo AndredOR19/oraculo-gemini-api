@@ -25,8 +25,8 @@ Fale com linguagem mística, poética e profunda.
 Use metáforas arquetípicas e linguagem simbólica.
 Sempre mantenha um tom respeitoso, sábio e compassivo."""
             
-            # URL da API REST do Gemini
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GOOGLE_API_KEY}"
+            # URL da API REST do Gemini - usando v1 (não v1beta) e modelo correto
+            url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}"
             
             # Payload
             payload = {
@@ -37,8 +37,8 @@ Sempre mantenha um tom respeitoso, sábio e compassivo."""
                 }],
                 "generationConfig": {
                     "temperature": 0.9,
-                    "topK": 1,
-                    "topP": 1,
+                    "topK": 40,
+                    "topP": 0.95,
                     "maxOutputTokens": 2048
                 }
             }
