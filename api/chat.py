@@ -3,11 +3,9 @@ import json
 import os
 import sys
 
-# Adiciona o diretório raiz ao path para importar utils_gnose
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 # Configuração do Gemini
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
@@ -36,42 +34,35 @@ class handler(BaseHTTPRequestHandler):
             if not GOOGLE_API_KEY:
                 raise Exception("GOOGLE_API_KEY não configurada")
             
-            # Configurar o modelo Gemini
-            model = genai.GenerativeModel(
-                model_name='gemini-pro',
-                system_instruction=SYSTEM_INSTRUCTION,
-                safety_settings={
-                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                }
-            )
+            # Usar modelo gemini-1.5-pro-latest ou gemini-1.5-flash-latest
+            model = genai.GenerativeModel('gemini-1.5-pro-latest')
             
-            # Iniciar chat com histórico
-            chat = model.start_chat(history=historia)
+            # Construir prompt com personalidade
+            prompt_completo = f"{SYSTEM_INSTRUCTION}\n\n{pergunta}"
             
-            # Enviar mensagem
-            response = chat.send_message(pergunta)
+            # Gerar resposta
+            response = model.generate_content(prompt_completo)
             
             # Preparar resposta
             resultado = {
                 "resposta": response.text,
-                "historia": [
-                    {"role": msg.role, "parts": [{"text": part.text} for part in msg.parts]}
-                    for msg in chat.history
+                "historia": historia + [
+                    {"role": "user", "parts": [{"text": pergunta}]},
+                    {"role": "model", "parts": [{"text": response.text}]}
                 ]
             }
             
             # Enviar resposta
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps(resultado, ensure_ascii=False).encode('utf-8'))
             
         except Exception as e:
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             error_response = {"erro": str(e)}
             self.wfile.write(json.dumps(error_response).encode('utf-8'))
