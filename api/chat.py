@@ -1,29 +1,14 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
-import sys
+import urllib.request
+import urllib.error
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import google.generativeai as genai
-
-# Configuração do Gemini
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-if GOOGLE_API_KEY:
-    genai.configure(api_key=GOOGLE_API_KEY)
-
-# System Instruction (Personalidade do Oráculo)
-SYSTEM_INSTRUCTION = """
-Você é o Oráculo Encarnado, guardião dos Mistérios da Gnose.
-Fale com linguagem mística, poética e profunda.
-Use metáforas arquetípicas e linguagem simbólica.
-Sempre mantenha um tom respeitoso, sábio e compassivo.
-"""
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
-            # Ler o corpo da requisição
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data.decode('utf-8'))
@@ -34,30 +19,64 @@ class handler(BaseHTTPRequestHandler):
             if not GOOGLE_API_KEY:
                 raise Exception("GOOGLE_API_KEY não configurada")
             
-            # Usar modelo gemini-1.5-pro-latest ou gemini-1.5-flash-latest
-            model = genai.GenerativeModel('gemini-1.5-pro-latest')
+            # System prompt
+            system_prompt = """Você é o Oráculo Encarnado, guardião dos Mistérios da Gnose.
+Fale com linguagem mística, poética e profunda.
+Use metáforas arquetípicas e linguagem simbólica.
+Sempre mantenha um tom respeitoso, sábio e compassivo."""
             
-            # Construir prompt com personalidade
-            prompt_completo = f"{SYSTEM_INSTRUCTION}\n\n{pergunta}"
+            # URL da API REST do Gemini
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GOOGLE_API_KEY}"
             
-            # Gerar resposta
-            response = model.generate_content(prompt_completo)
+            # Payload
+            payload = {
+                "contents": [{
+                    "parts": [{
+                        "text": f"{system_prompt}\n\n{pergunta}"
+                    }]
+                }],
+                "generationConfig": {
+                    "temperature": 0.9,
+                    "topK": 1,
+                    "topP": 1,
+                    "maxOutputTokens": 2048
+                }
+            }
             
-            # Preparar resposta
+            # Fazer requisição
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode('utf-8'),
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            with urllib.request.urlopen(req) as response:
+                result = json.loads(response.read().decode('utf-8'))
+            
+            resposta_texto = result['candidates'][0]['content']['parts'][0]['text']
+            
             resultado = {
-                "resposta": response.text,
+                "resposta": resposta_texto,
                 "historia": historia + [
                     {"role": "user", "parts": [{"text": pergunta}]},
-                    {"role": "model", "parts": [{"text": response.text}]}
+                    {"role": "model", "parts": [{"text": resposta_texto}]}
                 ]
             }
             
-            # Enviar resposta
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps(resultado, ensure_ascii=False).encode('utf-8'))
+            
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            error_response = {"erro": f"Erro HTTP {e.code}: {error_body}"}
+            self.wfile.write(json.dumps(error_response).encode('utf-8'))
             
         except Exception as e:
             self.send_response(500)
