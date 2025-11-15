@@ -20,15 +20,23 @@ class handler(BaseHTTPRequestHandler):
                 raise Exception("GOOGLE_API_KEY não configurada")
             
             system_prompt = """Você é o Oráculo Encarnado, guardião dos Mistérios da Gnose.
-Fale com linguagem mística, poética e profunda."""
+Fale com linguagem mística, poética e profunda.
+Use metáforas arquetípicas e linguagem simbólica.
+Sempre mantenha um tom respeitoso, sábio e compassivo."""
             
-            # API v1beta com modelo gemini-1.5-flash-latest
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GOOGLE_API_KEY}"
+            # Usar gemini-2.5-flash (modelo mais recente e estável)
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GOOGLE_API_KEY}"
             
             payload = {
                 "contents": [{
                     "parts": [{"text": f"{system_prompt}\n\n{pergunta}"}]
-                }]
+                }],
+                "generationConfig": {
+                    "temperature": 0.9,
+                    "topK": 40,
+                    "topP": 0.95,
+                    "maxOutputTokens": 2048
+                }
             }
             
             req = urllib.request.Request(
