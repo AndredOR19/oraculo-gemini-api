@@ -38,7 +38,7 @@ class handler(BaseHTTPRequestHandler):
             
             # Configurar o modelo Gemini
             model = genai.GenerativeModel(
-                model_name='gemini-1.5-flash',
+                model_name='gemini-pro',
                 system_instruction=SYSTEM_INSTRUCTION,
                 safety_settings={
                     HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,

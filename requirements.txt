@@ -1,4 +1,2 @@
 requests
-flatlib
-pyswisseph
 google-generativeai
