@@ -61,6 +61,8 @@ Sempre mantenha um tom respeitoso, sábio e compassivo."""
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.end_headers()
             self.wfile.write(json.dumps(resultado, ensure_ascii=False).encode('utf-8'))
             
@@ -69,6 +71,8 @@ Sempre mantenha um tom respeitoso, sábio e compassivo."""
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.end_headers()
             error_response = {"erro": f"HTTP {e.code}: {error_body}"}
             self.wfile.write(json.dumps(error_response).encode('utf-8'))
@@ -77,13 +81,15 @@ Sempre mantenha um tom respeitoso, sábio e compassivo."""
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.end_headers()
             error_response = {"erro": str(e)}
             self.wfile.write(json.dumps(error_response).encode('utf-8'))
     
     def do_OPTIONS(self):
-        self.send_response(200)
+        self.send_response(204)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
